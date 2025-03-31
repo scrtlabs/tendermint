@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"time"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	cryptoenc "github.com/cometbft/cometbft/crypto/encoding"
 	"github.com/cometbft/cometbft/libs/fail"
@@ -14,7 +16,6 @@ import (
 	"github.com/cometbft/cometbft/proxy"
 	"github.com/cometbft/cometbft/types"
 	tmenclave "github.com/scrtlabs/tm-secret-enclave"
-	"time"
 )
 
 //-----------------------------------------------------------------------------
@@ -239,6 +240,7 @@ func (blockExec *BlockExecutor) applyBlock(state State, blockID types.BlockID, b
 	// todo: change to log level debug later
 	blockExec.logger.Info(fmt.Sprintf("Submitted validator set to enclave for height %d, val set hash: %s", block.Height, hex.EncodeToString(block.ValidatorsHash)))
 
+	fmt.Printf("tendermint implicithash: %+v\n", block.ImplicitHash)
 	// ScrtLabs <- changes end
 
 	startTime := time.Now().UnixNano()
@@ -253,7 +255,9 @@ func (blockExec *BlockExecutor) applyBlock(state State, blockID types.BlockID, b
 		Txs:                block.Txs.ToSliceOfBytes(),
 		EncryptedRandom:    block.EncryptedRandom.ToProto(),
 		Commit:             blockExec.blockStore.LoadSeenCommit(block.Height).ToProto(),
+		ImplicitHash:       block.ImplicitHash,
 	})
+	fmt.Printf("tendermint implicithash2: %+v\n", block.ImplicitHash)
 	endTime := time.Now().UnixNano()
 	blockExec.metrics.BlockProcessingTime.Observe(float64(endTime-startTime) / 1000000)
 	if err != nil {

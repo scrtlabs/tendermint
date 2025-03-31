@@ -2,19 +2,20 @@ package state
 
 import (
 	"bytes"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"os"
 	"time"
-	"encoding/hex"
+
 	"github.com/cosmos/gogoproto/proto"
 
-	tmenclave "github.com/scrtlabs/tm-secret-enclave"
 	cmtstate "github.com/cometbft/cometbft/proto/tendermint/state"
 	cmtversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	"github.com/cometbft/cometbft/types"
 	cmttime "github.com/cometbft/cometbft/types/time"
 	"github.com/cometbft/cometbft/version"
+	tmenclave "github.com/scrtlabs/tm-secret-enclave"
 )
 
 // database keys
@@ -288,6 +289,8 @@ func (state State) MakeBlock(
 		state.ConsensusParams.Hash(), state.AppHash, state.LastResultsHash,
 		proposerAddress, &encryptedRandom,
 	)
+
+	fmt.Printf("------------ HEADER ---------------\n %+v", block.Header)
 
 	return block
 }
