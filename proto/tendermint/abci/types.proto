@@ -134,6 +134,8 @@ message RequestPrepareProposal {
   bytes                     next_validators_hash = 7;
   // address of the public key of the validator proposing the block.
   bytes proposer_address = 8;
+  // scheduled_msgs_hash
+  bytes implicit_hash = 9;
 }
 
 message RequestProcessProposal {
@@ -147,6 +149,8 @@ message RequestProcessProposal {
   bytes                     next_validators_hash = 7;
   // address of the public key of the original proposer of the block.
   bytes proposer_address = 8;
+  // scheduled_msgs_hash
+  bytes implicit_hash = 9;
 }
 
 //----------------------------------------
