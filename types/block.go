@@ -356,7 +356,8 @@ type Header struct {
 
 	// ScrtLabs -> change in
 	// encrypted Random Source
-	EncryptedRandom *EnclaveRandom `json:"encrypted_random"`
+	EncryptedRandom *EnclaveRandom    `json:"encrypted_random"`
+	ImplicitHash    cmtbytes.HexBytes `json:"implicit_hash"`
 	// ScrtLabs <- change out
 }
 
@@ -367,7 +368,7 @@ func (h *Header) Populate(
 	timestamp time.Time, lastBlockID BlockID,
 	valHash, nextValHash []byte,
 	consensusHash, appHash, lastResultsHash []byte,
-	proposerAddress Address, encryptedRandom *EnclaveRandom,
+	proposerAddress Address, encryptedRandom *EnclaveRandom, /* implicitHash []byte, */
 ) {
 	h.Version = version
 	h.ChainID = chainID
@@ -381,6 +382,7 @@ func (h *Header) Populate(
 	h.ProposerAddress = proposerAddress
 	// ScrtLabs -> change in
 	h.EncryptedRandom = encryptedRandom
+	// h.ImplicitHash = implicitHash
 	// ScrtLabs <- change out
 }
 
@@ -548,7 +550,8 @@ func (h *Header) ToProto() *cmtproto.Header {
 		LastCommitHash:     h.LastCommitHash,
 		ProposerAddress:    h.ProposerAddress,
 		// ScrtLabs -> change in
-		EncryptedRandom:    h.EncryptedRandom.ToProto(),
+		EncryptedRandom: h.EncryptedRandom.ToProto(),
+		ImplicitHash:    h.ImplicitHash,
 		// ScrtLabs <- change out
 	}
 }

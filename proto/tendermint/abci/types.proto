@@ -140,6 +140,8 @@ message RequestPrepareProposal {
   bytes                     next_validators_hash = 7;
   // address of the public key of the validator proposing the block.
   bytes proposer_address = 8;
+  // scheduled_msgs_hash
+  bytes implicit_hash = 9;
 }
 
 message RequestProcessProposal {
@@ -153,6 +155,8 @@ message RequestProcessProposal {
   bytes                     next_validators_hash = 7;
   // address of the public key of the original proposer of the block.
   bytes proposer_address = 8;
+  // scheduled_msgs_hash
+  bytes implicit_hash = 9;
 }
 
 // Extends a vote with application-injected data
@@ -169,6 +173,8 @@ message RequestExtendVote {
   bytes                     next_validators_hash = 7;
   // address of the public key of the original proposer of the block.
   bytes proposer_address = 8;
+  // scheduled_msgs_hash
+  bytes implicit_hash = 9;
 }
 
 // Verify the vote extension
@@ -194,6 +200,7 @@ message RequestFinalizeBlock {
   bytes proposer_address = 8;
   tendermint.types.EncryptedRandom encrypted_random = 9; // a random number encrypted by the proposer to be used in contracts
   tendermint.types.Commit commit = 10;
+  bytes implicit_hash = 11;
 }
 
 //----------------------------------------
