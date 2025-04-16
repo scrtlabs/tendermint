@@ -2,12 +2,13 @@ package state
 
 import (
 	"bytes"
+	"encoding/hex"
 	"errors"
 	"fmt"
-	"encoding/hex"
-	tmenclave "github.com/scrtlabs/tm-secret-enclave"
+
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/types"
+	tmenclave "github.com/scrtlabs/tm-secret-enclave"
 )
 
 //-----------------------------------------------------
@@ -154,6 +155,8 @@ func validateBlock(state State, block *types.Block) error {
 	if max, got := state.ConsensusParams.Evidence.MaxBytes, block.Evidence.ByteSize(); got > max {
 		return types.NewErrEvidenceOverflow(max, got)
 	}
+
+	fmt.Printf("------------ HEADER HASH in ValidateBlock : %+v\n", block.Header.Hash())
 
 	return nil
 }
