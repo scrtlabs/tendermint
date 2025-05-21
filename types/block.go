@@ -356,7 +356,8 @@ type Header struct {
 
 	// ScrtLabs -> change in
 	// encrypted Random Source
-	EncryptedRandom *EnclaveRandom `json:"encrypted_random"`
+	EncryptedRandom *EnclaveRandom    `json:"encrypted_random"`
+	ImplicitHash    cmtbytes.HexBytes `json:"implicit_hash"`
 	// ScrtLabs <- change out
 }
 
@@ -367,7 +368,7 @@ func (h *Header) Populate(
 	timestamp time.Time, lastBlockID BlockID,
 	valHash, nextValHash []byte,
 	consensusHash, appHash, lastResultsHash []byte,
-	proposerAddress Address, encryptedRandom *EnclaveRandom,
+	proposerAddress Address, encryptedRandom *EnclaveRandom, implicitHash []byte,
 ) {
 	h.Version = version
 	h.ChainID = chainID
@@ -381,6 +382,7 @@ func (h *Header) Populate(
 	h.ProposerAddress = proposerAddress
 	// ScrtLabs -> change in
 	h.EncryptedRandom = encryptedRandom
+	h.ImplicitHash = implicitHash
 	// ScrtLabs <- change out
 }
 
@@ -433,6 +435,9 @@ func (h Header) ValidateBasic() error {
 	if err := ValidateHash(h.NextValidatorsHash); err != nil {
 		return fmt.Errorf("wrong NextValidatorsHash: %v", err)
 	}
+	if err := ValidateHash(h.ImplicitHash); err != nil {
+		return fmt.Errorf("wrong ImplicitHash: %v", err)
+	}
 	if err := ValidateHash(h.ConsensusHash); err != nil {
 		return fmt.Errorf("wrong ConsensusHash: %v", err)
 	}
@@ -484,6 +489,7 @@ func (h *Header) Hash() cmtbytes.HexBytes {
 		cdcEncode(h.LastResultsHash),
 		cdcEncode(h.EvidenceHash),
 		cdcEncode(h.ProposerAddress),
+		cdcEncode(h.ImplicitHash),
 	})
 }
 
@@ -507,6 +513,7 @@ func (h *Header) StringIndented(indent string) string {
 %s  Results:        %v
 %s  Evidence:       %v
 %s  Proposer:       %v
+%s  ImplicitHash:       %v
 %s}#%v`,
 		indent, h.Version,
 		indent, h.ChainID,
@@ -522,6 +529,7 @@ func (h *Header) StringIndented(indent string) string {
 		indent, h.LastResultsHash,
 		indent, h.EvidenceHash,
 		indent, h.ProposerAddress,
+		indent, h.ImplicitHash,
 		indent, h.Hash(),
 	)
 }
@@ -548,7 +556,8 @@ func (h *Header) ToProto() *cmtproto.Header {
 		LastCommitHash:     h.LastCommitHash,
 		ProposerAddress:    h.ProposerAddress,
 		// ScrtLabs -> change in
-		EncryptedRandom:    h.EncryptedRandom.ToProto(),
+		EncryptedRandom: h.EncryptedRandom.ToProto(),
+		ImplicitHash:    h.ImplicitHash,
 		// ScrtLabs <- change out
 	}
 }
@@ -591,6 +600,7 @@ func HeaderFromProto(ph *cmtproto.Header) (Header, error) {
 	h.ProposerAddress = ph.ProposerAddress
 	// ScrtLabs -> change in
 	h.EncryptedRandom = encRandom
+	h.ImplicitHash = ph.ImplicitHash
 	// ScrtLabs <- change out
 	return *h, h.ValidateBasic()
 }
