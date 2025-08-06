@@ -2,6 +2,7 @@ package state
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -125,7 +126,10 @@ func validateBlock(state State, block *types.Block) error {
 		return fmt.Errorf("failed to get implicit hash: %w", err)
 	}
 	if !bytes.Equal(block.Header.ImplicitHash, expectedImplicitHash) {
-		return fmt.Errorf("implicit_hash mismatch: expected %X, got %X", hex.EncodeToString(expectedImplicitHash), hex.EncodeToString(block.Header.ImplicitHash))
+		emptySha256 := sha256.Sum256([]byte{})
+		if !(bytes.Equal(block.Header.ImplicitHash, []byte{}) && bytes.Equal(expectedImplicitHash, emptySha256[:])) {
+			return fmt.Errorf("implicit_hash mismatch: expected %X, got %X", hex.EncodeToString(expectedImplicitHash), hex.EncodeToString(block.Header.ImplicitHash))
+		}
 	}
 
 	// Validate block Time
