@@ -489,7 +489,7 @@ func (h *Header) Hash() cmtbytes.HexBytes {
 		cdcEncode(h.LastResultsHash),
 		cdcEncode(h.EvidenceHash),
 		cdcEncode(h.ProposerAddress),
-		cdcEncode(h.ImplicitHash),
+		// cdcEncode(h.ImplicitHash),
 	})
 }
 
@@ -529,7 +529,7 @@ func (h *Header) StringIndented(indent string) string {
 		indent, h.LastResultsHash,
 		indent, h.EvidenceHash,
 		indent, h.ProposerAddress,
-		indent, h.ImplicitHash,
+		// indent, h.ImplicitHash,
 		indent, h.Hash(),
 	)
 }

@@ -121,14 +121,15 @@ func validateBlock(state State, block *types.Block) error {
 		}
 	}
 
-	expectedImplicitHash, err := tmenclave.GetImplicitHash() // hash from last block's scheduling
-	if err != nil {
-		return fmt.Errorf("failed to get implicit hash: %w", err)
-	}
-	if !bytes.Equal(block.Header.ImplicitHash, expectedImplicitHash) {
+	// expectedImplicitHash, err := tmenclave.GetImplicitHash() // hash from last block's scheduling
+	// if err != nil {
+	// 	return fmt.Errorf("failed to get implicit hash: %w", err)
+	// }
+	if len(block.Header.ImplicitHash) > 0 {
 		emptySha256 := sha256.Sum256([]byte{})
-		if !(bytes.Equal(block.Header.ImplicitHash, []byte{}) && bytes.Equal(expectedImplicitHash, emptySha256[:])) {
-			return fmt.Errorf("implicit_hash mismatch: expected %X, got %X", hex.EncodeToString(expectedImplicitHash), hex.EncodeToString(block.Header.ImplicitHash))
+		if !bytes.Equal(block.Header.ImplicitHash, emptySha256[:]) {
+			return fmt.Errorf("implicit_hash mismatch: expected nil or empty hash, got %s",
+				block.Header.ImplicitHash.String())
 		}
 	}
 
