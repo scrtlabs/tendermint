@@ -280,10 +280,10 @@ func (state State) MakeBlock(
 		panic("Failed to validate generated random")
 	}
 
-	implicitHash, err := tmenclave.GetImplicitHash()
-	if err != nil {
-		panic("Failed to get implicit hash")
-	}
+	// implicitHash, err := tmenclave.GetImplicitHash()
+	// if err != nil {
+	// 	panic("Failed to get implicit hash")
+	// }
 	// ScrtLabs changes out <-
 
 	// Fill rest of header with state data.
@@ -292,7 +292,7 @@ func (state State) MakeBlock(
 		timestamp, state.LastBlockID,
 		state.Validators.Hash(), state.NextValidators.Hash(),
 		state.ConsensusParams.Hash(), state.AppHash, state.LastResultsHash,
-		proposerAddress, &encryptedRandom, implicitHash,
+		proposerAddress, &encryptedRandom, nil,
 	)
 
 	return block
