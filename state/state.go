@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 
 	cmtstate "github.com/cometbft/cometbft/proto/tendermint/state"
+	tm_type "github.com/cometbft/cometbft/proto/tendermint/types"
 	cmtversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	"github.com/cometbft/cometbft/types"
 	cmttime "github.com/cometbft/cometbft/types/time"
@@ -242,6 +243,33 @@ func (state State) MakeBlock(
 ) *types.Block {
 
 	// Build base block with block data.
+	// ScrtLabs changes in ->
+	marshalledTxs, err := tmenclave.GetScheduledTxs()
+	if err != nil {
+		panic("Failed to get scheduled txs from enclave")
+	}
+	// implicitTxs = types.Txs(implicitTxs)
+	implicitTxs := &tm_type.Data{}
+	err = implicitTxs.Unmarshal(marshalledTxs)
+	if err != nil {
+		panic("Failed to unmarshal scheduled txs")
+	}
+	withoutScheduled := types.Txs(txs)
+	println("withoutScheduledTxsHash: ", hex.EncodeToString(withoutScheduled.Hash()))
+	fmt.Println("Implicit txs len: ", len(implicitTxs.Txs))
+	fmt.Println("txs len: ", len(txs))
+	scheduledTxs := make([]types.Tx, len(implicitTxs.Txs), len(implicitTxs.Txs)+len(txs))
+	for i, tx := range implicitTxs.Txs {
+		scheduledTxs[i] = types.Tx(tx)
+	}
+
+	// Append original txs after scheduled ones
+	txs = append(scheduledTxs, txs...)
+	fmt.Println("Total txs len: ", len(txs))
+
+	withScheduled := types.Txs(txs)
+	println("withScheduledTxsHash: ", hex.EncodeToString(withScheduled.Hash()))
+	// ScrtLabs changes out <-
 	block := types.MakeBlock(height, txs, lastCommit, evidence)
 
 	// Set time.
@@ -285,7 +313,7 @@ func (state State) MakeBlock(
 	// 	panic("Failed to get implicit hash")
 	// }
 	// ScrtLabs changes out <-
-
+	fmt.Println("Block data hash: ", hex.EncodeToString(block.DataHash))
 	// Fill rest of header with state data.
 	block.Header.Populate(
 		state.Version.Consensus, state.ChainID,

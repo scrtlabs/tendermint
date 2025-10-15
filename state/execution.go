@@ -168,6 +168,10 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 		return nil, err
 	}
 
+	// ScrtLabs changes ->
+	tmenclave.SetScheduledTxs([]byte{}) // clear scheduled txs before setting new ones
+	// ScrtLabs changes <-
+
 	return state.MakeBlock(height, txl, commit, evidence, proposerAddr), nil
 }
 
