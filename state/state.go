@@ -287,7 +287,7 @@ func (state State) MakeBlock(
 	// ScrtLabs changes out <-
 
 	// Fill rest of header with state data.
-	block.Header.Populate(
+	block.Populate(
 		state.Version.Consensus, state.ChainID,
 		timestamp, state.LastBlockID,
 		state.Validators.Hash(), state.NextValidators.Hash(),
