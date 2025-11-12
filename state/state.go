@@ -2,21 +2,20 @@ package state
 
 import (
 	"bytes"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"os"
 	"time"
-
+	"encoding/hex"
 	"github.com/cosmos/gogoproto/proto"
 
+	tmenclave "github.com/scrtlabs/tm-secret-enclave"
 	cmtstate "github.com/cometbft/cometbft/proto/tendermint/state"
 	tm_type "github.com/cometbft/cometbft/proto/tendermint/types"
 	cmtversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	"github.com/cometbft/cometbft/types"
 	cmttime "github.com/cometbft/cometbft/types/time"
 	"github.com/cometbft/cometbft/version"
-	tmenclave "github.com/scrtlabs/tm-secret-enclave"
 )
 
 // database keys
@@ -307,11 +306,6 @@ func (state State) MakeBlock(
 		// println("Invalid random generated")
 		panic("Failed to validate generated random")
 	}
-
-	// implicitHash, err := tmenclave.GetImplicitHash()
-	// if err != nil {
-	// 	panic("Failed to get implicit hash")
-	// }
 	// ScrtLabs changes out <-
 	fmt.Println("Block data hash: ", hex.EncodeToString(block.DataHash))
 	// Fill rest of header with state data.
@@ -320,7 +314,7 @@ func (state State) MakeBlock(
 		timestamp, state.LastBlockID,
 		state.Validators.Hash(), state.NextValidators.Hash(),
 		state.ConsensusParams.Hash(), state.AppHash, state.LastResultsHash,
-		proposerAddress, &encryptedRandom, nil,
+		proposerAddress, &encryptedRandom,
 	)
 
 	return block
