@@ -5,8 +5,6 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"time"
-
 	abci "github.com/cometbft/cometbft/abci/types"
 	cryptoenc "github.com/cometbft/cometbft/crypto/encoding"
 	"github.com/cometbft/cometbft/libs/fail"
@@ -16,6 +14,7 @@ import (
 	"github.com/cometbft/cometbft/proxy"
 	"github.com/cometbft/cometbft/types"
 	tmenclave "github.com/scrtlabs/tm-secret-enclave"
+	"time"
 )
 
 //-----------------------------------------------------------------------------
@@ -139,16 +138,6 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 			Time:               block.Time,
 			NextValidatorsHash: block.NextValidatorsHash,
 			ProposerAddress:    block.ProposerAddress,
-			ImplicitHash:       block.ImplicitHash,
-			Version:            block.Version,
-			DataHash:           block.DataHash,
-			LastBlockId:        block.LastBlockID.ToProto(),
-			LastCommitHash:     block.LastCommitHash,
-			ValidatorsHash:     block.ValidatorsHash,
-			ConsensusHash:      block.ConsensusHash,
-			LastResultsHash:    block.LastResultsHash,
-			EvidenceHash:       block.EvidenceHash,
-			EncryptedRandom:    block.EncryptedRandom.ToProto(),
 		},
 	)
 	if err != nil {
@@ -184,16 +173,6 @@ func (blockExec *BlockExecutor) ProcessProposal(
 		Misbehavior:        block.Evidence.Evidence.ToABCI(),
 		ProposerAddress:    block.ProposerAddress,
 		NextValidatorsHash: block.NextValidatorsHash,
-		ImplicitHash:       block.ImplicitHash,
-		Version:            block.Version,
-		DataHash:           block.DataHash,
-		LastBlockId:        block.LastBlockID.ToProto(),
-		LastCommitHash:     block.LastCommitHash,
-		ValidatorsHash:     block.ValidatorsHash,
-		ConsensusHash:      block.ConsensusHash,
-		LastResultsHash:    block.LastResultsHash,
-		EvidenceHash:       block.EvidenceHash,
-		EncryptedRandom:    block.EncryptedRandom.ToProto(),
 	})
 	if err != nil {
 		return false, err
@@ -274,15 +253,6 @@ func (blockExec *BlockExecutor) applyBlock(state State, blockID types.BlockID, b
 		Txs:                block.Txs.ToSliceOfBytes(),
 		EncryptedRandom:    block.EncryptedRandom.ToProto(),
 		Commit:             blockExec.blockStore.LoadSeenCommit(block.Height).ToProto(),
-		ImplicitHash:       block.ImplicitHash,
-		Version:            block.Version,
-		DataHash:           block.DataHash,
-		LastBlockId:        block.LastBlockID.ToProto(),
-		LastCommitHash:     block.LastCommitHash,
-		ValidatorsHash:     block.ValidatorsHash,
-		ConsensusHash:      block.ConsensusHash,
-		LastResultsHash:    block.LastResultsHash,
-		EvidenceHash:       block.EvidenceHash,
 	})
 	endTime := time.Now().UnixNano()
 	blockExec.metrics.BlockProcessingTime.Observe(float64(endTime-startTime) / 1000000)
@@ -397,15 +367,6 @@ func (blockExec *BlockExecutor) ExtendVote(
 		Misbehavior:        block.Evidence.Evidence.ToABCI(),
 		NextValidatorsHash: block.NextValidatorsHash,
 		ProposerAddress:    block.ProposerAddress,
-		ImplicitHash:       block.ImplicitHash,
-		Version:            block.Version,
-		DataHash:           block.DataHash,
-		LastBlockId:        block.LastBlockID.ToProto(),
-		LastCommitHash:     block.LastCommitHash,
-		ValidatorsHash:     block.ValidatorsHash,
-		ConsensusHash:      block.ConsensusHash,
-		LastResultsHash:    block.LastResultsHash,
-		EvidenceHash:       block.EvidenceHash,
 	}
 
 	resp, err := blockExec.proxyApp.ExtendVote(ctx, &req)
@@ -808,16 +769,6 @@ func ExecCommitBlock(
 		DecidedLastCommit:  commitInfo,
 		Misbehavior:        block.Evidence.Evidence.ToABCI(),
 		Txs:                block.Txs.ToSliceOfBytes(),
-		ImplicitHash:       block.ImplicitHash,
-		Version:            block.Version,
-		DataHash:           block.DataHash,
-		LastBlockId:        block.LastBlockID.ToProto(),
-		LastCommitHash:     block.LastCommitHash,
-		ValidatorsHash:     block.ValidatorsHash,
-		ConsensusHash:      block.ConsensusHash,
-		LastResultsHash:    block.LastResultsHash,
-		EvidenceHash:       block.EvidenceHash,
-		EncryptedRandom:    block.EncryptedRandom.ToProto(),
 	})
 	if err != nil {
 		logger.Error("error in proxyAppConn.FinalizeBlock", "err", err)
