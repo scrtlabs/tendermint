@@ -295,6 +295,7 @@ func (state State) MakeBlock(
 		proposerAddress, &encryptedRandom, implicitHash,
 	)
 
+	fmt.Printf("------------ HEADER HASH : %+v\n", block.Header.Hash())
 	return block
 }
 
