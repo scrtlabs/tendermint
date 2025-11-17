@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"time"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	cryptoenc "github.com/cometbft/cometbft/crypto/encoding"
 	"github.com/cometbft/cometbft/libs/fail"
@@ -14,7 +16,6 @@ import (
 	"github.com/cometbft/cometbft/proxy"
 	"github.com/cometbft/cometbft/types"
 	tmenclave "github.com/scrtlabs/tm-secret-enclave"
-	"time"
 )
 
 //-----------------------------------------------------------------------------
@@ -257,6 +258,14 @@ func (blockExec *BlockExecutor) applyBlock(state State, blockID types.BlockID, b
 		Txs:                block.Txs.ToSliceOfBytes(),
 		EncryptedRandom:    block.EncryptedRandom.ToProto(),
 		Commit:             blockExec.blockStore.LoadSeenCommit(block.Height).ToProto(),
+		Version:            block.Version,
+		LastBlockId:        block.LastBlockID.ToProto(),
+		DataHash:           block.DataHash,
+		LastCommitHash:     block.LastCommitHash,
+		ValidatorsHash:     block.ValidatorsHash,
+		ConsensusHash:      block.ConsensusHash,
+		LastResultsHash:    block.LastResultsHash,
+		EvidenceHash:       block.EvidenceHash,
 	})
 	endTime := time.Now().UnixNano()
 	blockExec.metrics.BlockProcessingTime.Observe(float64(endTime-startTime) / 1000000)
