@@ -2,19 +2,21 @@ package state
 
 import (
 	"bytes"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"os"
 	"time"
-	"encoding/hex"
+
 	"github.com/cosmos/gogoproto/proto"
 
-	tmenclave "github.com/scrtlabs/tm-secret-enclave"
 	cmtstate "github.com/cometbft/cometbft/proto/tendermint/state"
+	tm_type "github.com/cometbft/cometbft/proto/tendermint/types"
 	cmtversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	"github.com/cometbft/cometbft/types"
 	cmttime "github.com/cometbft/cometbft/types/time"
 	"github.com/cometbft/cometbft/version"
+	tmenclave "github.com/scrtlabs/tm-secret-enclave"
 )
 
 // database keys
@@ -241,6 +243,27 @@ func (state State) MakeBlock(
 ) *types.Block {
 
 	// Build base block with block data.
+	// ScrtLabs changes in ->
+	marshalledTxs, err := tmenclave.GetScheduledTxs()
+	if err != nil {
+		panic("Failed to get scheduled txs from tm-secret-enclave")
+	}
+	// implicitTxs = types.Txs(implicitTxs)
+	implicitTxs := &tm_type.Data{}
+	err = implicitTxs.Unmarshal(marshalledTxs)
+	if err != nil {
+		panic("Failed to unmarshal scheduled txs")
+	}
+
+	scheduledTxs := make([]types.Tx, len(implicitTxs.Txs), len(implicitTxs.Txs)+len(txs))
+	for i, tx := range implicitTxs.Txs {
+		scheduledTxs[i] = types.Tx(tx)
+	}
+
+	// Append original txs after scheduled ones
+	txs = append(scheduledTxs, txs...)
+
+	// ScrtLabs changes out <-
 	block := types.MakeBlock(height, txs, lastCommit, evidence)
 
 	// Set time.
