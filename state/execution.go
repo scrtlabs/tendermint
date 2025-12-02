@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"os"
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -159,7 +160,12 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 	}
 
 	// ScrtLabs changes ->
-	tmenclave.SetScheduledTxs([]byte{}) // clear scheduled txs before setting new ones
+	if !(os.Getenv("SECRET_NODE_MODE") == "replay") {
+		err = tmenclave.SetScheduledTxs([]byte{}) // clear scheduled txs before setting new ones
+		if err != nil {
+			return nil, fmt.Errorf("error clearing scheduled txs in enclave: %v", err)
+		}
+	}
 	// ScrtLabs changes <-
 
 	return state.MakeBlock(height, txl, commit, evidence, proposerAddr), nil
@@ -237,13 +243,14 @@ func (blockExec *BlockExecutor) applyBlock(state State, blockID types.BlockID, b
 	if err != nil {
 		return state, fmt.Errorf("error in marshaling validator set: %v", err)
 	}
-	err = tmenclave.SubmitValidatorSet(valSetBytes, uint64(block.Height))
-	if err != nil {
-		return state, fmt.Errorf("error submitting validator set to enclave: %v", err)
+	if !(os.Getenv("SECRET_NODE_MODE") == "replay") {
+		err = tmenclave.SubmitValidatorSet(valSetBytes, uint64(block.Height))
+		if err != nil {
+			return state, fmt.Errorf("error submitting validator set to enclave: %v", err)
+		}
+		// todo: change to log level debug later
+		blockExec.logger.Info(fmt.Sprintf("Submitted validator set to enclave for height %d, val set hash: %s", block.Height, hex.EncodeToString(block.ValidatorsHash)))
 	}
-	// todo: change to log level debug later
-	blockExec.logger.Info(fmt.Sprintf("Submitted validator set to enclave for height %d, val set hash: %s", block.Height, hex.EncodeToString(block.ValidatorsHash)))
-
 	// ScrtLabs <- changes end
 
 	startTime := time.Now().UnixNano()

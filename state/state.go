@@ -244,24 +244,26 @@ func (state State) MakeBlock(
 
 	// Build base block with block data.
 	// ScrtLabs changes in ->
-	marshalledTxs, err := tmenclave.GetScheduledTxs()
-	if err != nil {
-		println("Failed to get scheduled txs from tm-secret-enclave")
-	}
-	// implicitTxs = types.Txs(implicitTxs)
-	implicitTxs := &tm_type.Data{}
-	err = implicitTxs.Unmarshal(marshalledTxs)
-	if err != nil {
-		println("Failed to unmarshal scheduled txs")
-	}
-
-	if len(implicitTxs.Txs) > 0 {
-		scheduledTxs := make([]types.Tx, len(implicitTxs.Txs), len(implicitTxs.Txs)+len(txs))
-		for i, tx := range implicitTxs.Txs {
-			scheduledTxs[i] = types.Tx(tx)
+	if !(os.Getenv("SECRET_NODE_MODE") == "replay") {
+		marshalledTxs, err := tmenclave.GetScheduledTxs()
+		if err != nil {
+			println("Failed to get scheduled txs from tm-secret-enclave")
 		}
-		// Append original txs after scheduled ones
-		txs = append(scheduledTxs, txs...)
+		// implicitTxs = types.Txs(implicitTxs)
+		implicitTxs := &tm_type.Data{}
+		err = implicitTxs.Unmarshal(marshalledTxs)
+		if err != nil {
+			println("Failed to unmarshal scheduled txs")
+		}
+
+		if len(implicitTxs.Txs) > 0 {
+			scheduledTxs := make([]types.Tx, len(implicitTxs.Txs), len(implicitTxs.Txs)+len(txs))
+			for i, tx := range implicitTxs.Txs {
+				scheduledTxs[i] = types.Tx(tx)
+			}
+			// Append original txs after scheduled ones
+			txs = append(scheduledTxs, txs...)
+		}
 	}
 
 	// ScrtLabs changes out <-
@@ -285,22 +287,25 @@ func (state State) MakeBlock(
 	if err != nil {
 		panic("Failed to marshal validator set")
 	}
-	err = tmenclave.SubmitValidatorSet(valSetBytes, uint64(height))
-	if err != nil {
-		panic("Failed to submit validator set to enclave")
-	}
+	encryptedRandom := types.EnclaveRandom{}
+	if !(os.Getenv("SECRET_NODE_MODE") == "replay") {
+		err = tmenclave.SubmitValidatorSet(valSetBytes, uint64(height))
+		if err != nil {
+			panic("Failed to submit validator set to enclave")
+		}
 
-	random, proof, err := tmenclave.GetRandom(state.AppHash, uint64(block.Height))
-	if err != nil {
-		panic("Failed to submit validator set to enclave")
-	}
-	encryptedRandom := types.EnclaveRandom{Random: random, Proof: proof}
+		random, proof, err := tmenclave.GetRandom(state.AppHash, uint64(block.Height))
+		if err != nil {
+			panic("Failed to submit validator set to enclave")
+		}
+		encryptedRandom = types.EnclaveRandom{Random: random, Proof: proof}
 
-	println("Validating proposal ", block.Height, "with random: ", hex.EncodeToString(random), "proof: ", hex.EncodeToString(proof), "hash: ", hex.EncodeToString(block.DataHash))
-	res := tmenclave.ValidateRandom(random, proof, state.AppHash, uint64(block.Height))
-	if !res {
-		// println("Invalid random generated")
-		panic("Failed to validate generated random")
+		println("Validating proposal ", block.Height, "with random: ", hex.EncodeToString(random), "proof: ", hex.EncodeToString(proof), "hash: ", hex.EncodeToString(block.DataHash))
+		res := tmenclave.ValidateRandom(random, proof, state.AppHash, uint64(block.Height))
+		if !res {
+			// println("Invalid random generated")
+			panic("Failed to validate generated random")
+		}
 	}
 	// ScrtLabs changes out <-
 
