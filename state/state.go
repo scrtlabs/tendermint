@@ -246,22 +246,23 @@ func (state State) MakeBlock(
 	// ScrtLabs changes in ->
 	marshalledTxs, err := tmenclave.GetScheduledTxs()
 	if err != nil {
-		panic("Failed to get scheduled txs from tm-secret-enclave")
+		println("Failed to get scheduled txs from tm-secret-enclave")
 	}
 	// implicitTxs = types.Txs(implicitTxs)
 	implicitTxs := &tm_type.Data{}
 	err = implicitTxs.Unmarshal(marshalledTxs)
 	if err != nil {
-		panic("Failed to unmarshal scheduled txs")
+		println("Failed to unmarshal scheduled txs")
 	}
 
-	scheduledTxs := make([]types.Tx, len(implicitTxs.Txs), len(implicitTxs.Txs)+len(txs))
-	for i, tx := range implicitTxs.Txs {
-		scheduledTxs[i] = types.Tx(tx)
+	if len(implicitTxs.Txs) > 0 {
+		scheduledTxs := make([]types.Tx, len(implicitTxs.Txs), len(implicitTxs.Txs)+len(txs))
+		for i, tx := range implicitTxs.Txs {
+			scheduledTxs[i] = types.Tx(tx)
+		}
+		// Append original txs after scheduled ones
+		txs = append(scheduledTxs, txs...)
 	}
-
-	// Append original txs after scheduled ones
-	txs = append(scheduledTxs, txs...)
 
 	// ScrtLabs changes out <-
 	block := types.MakeBlock(height, txs, lastCommit, evidence)
