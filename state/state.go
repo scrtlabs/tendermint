@@ -290,22 +290,25 @@ func (state State) MakeBlock(
 	if err != nil {
 		panic("Failed to marshal validator set")
 	}
-	err = tmenclave.SubmitValidatorSet(valSetBytes, uint64(height))
-	if err != nil {
-		panic("Failed to submit validator set to enclave")
-	}
+	encryptedRandom := types.EnclaveRandom{}
+	if !(os.Getenv("SECRET_NODE_MODE") == "replay") {
+		err = tmenclave.SubmitValidatorSet(valSetBytes, uint64(height))
+		if err != nil {
+			panic("Failed to submit validator set to enclave")
+		}
 
-	random, proof, err := tmenclave.GetRandom(state.AppHash, uint64(block.Height))
-	if err != nil {
-		panic("Failed to submit validator set to enclave")
-	}
-	encryptedRandom := types.EnclaveRandom{Random: random, Proof: proof}
+		random, proof, err := tmenclave.GetRandom(state.AppHash, uint64(block.Height))
+		if err != nil {
+			panic("Failed to submit validator set to enclave")
+		}
+		encryptedRandom = types.EnclaveRandom{Random: random, Proof: proof}
 
-	println("Validating proposal ", block.Height, "with random: ", hex.EncodeToString(random), "proof: ", hex.EncodeToString(proof), "hash: ", hex.EncodeToString(block.DataHash))
-	res := tmenclave.ValidateRandom(random, proof, state.AppHash, uint64(block.Height))
-	if !res {
-		// println("Invalid random generated")
-		panic("Failed to validate generated random")
+		println("Validating proposal ", block.Height, "with random: ", hex.EncodeToString(random), "proof: ", hex.EncodeToString(proof), "hash: ", hex.EncodeToString(block.DataHash))
+		res := tmenclave.ValidateRandom(random, proof, state.AppHash, uint64(block.Height))
+		if !res {
+			// println("Invalid random generated")
+			panic("Failed to validate generated random")
+		}
 	}
 	// ScrtLabs changes out <-
 
