@@ -34,7 +34,7 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475
 	github.com/rs/cors v1.11.1
 	github.com/sasha-s/go-deadlock v0.3.5
-	github.com/scrtlabs/tm-secret-enclave v1.13.0
+	github.com/scrtlabs/tm-secret-enclave v1.13.0-beta
 	github.com/snikch/goodman v0.0.0-20171125024755-10e37e294daa
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.19.0
@@ -45,8 +45,9 @@ require (
 	golang.org/x/sync v0.11.0
 	gonum.org/v1/gonum v0.15.1
 	google.golang.org/grpc v1.70.0
-	google.golang.org/protobuf v1.36.5
 )
+
+require google.golang.org/protobuf v1.36.4
 
 require (
 	dario.cat/mergo v1.0.0 // indirect

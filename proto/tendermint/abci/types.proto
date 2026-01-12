@@ -9,8 +9,8 @@ import "tendermint/crypto/proof.proto";
 import "tendermint/crypto/keys.proto";
 import "tendermint/types/params.proto";
 import "tendermint/types/types.proto";
-import "tendermint/types/validator.proto";
 import "tendermint/version/types.proto";
+import "tendermint/types/validator.proto";
 import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
 
@@ -141,22 +141,6 @@ message RequestPrepareProposal {
   bytes                     next_validators_hash = 7;
   // address of the public key of the validator proposing the block.
   bytes proposer_address = 8;
-  // scheduled_msgs_hash
-  tendermint.version.Consensus version  = 9 [(gogoproto.nullable) = false];
-  tendermint.types.BlockID last_block_id = 10 [(gogoproto.nullable) = false];
-  bytes data_hash        = 11;
-  bytes last_commit_hash = 12;  // commit from validators from the last block
-  bytes validators_hash      = 13;   // validators for the current block
-  bytes consensus_hash       = 14;  // consensus params for current block
-  bytes last_results_hash    = 15;  // root hash of all results from the txs from the previous block
-
-  // consensus info
-  bytes evidence_hash    = 16;  // evidence included in the block
-  // encrypted random
-  tendermint.types.EncryptedRandom encrypted_random = 17; // a random number encrypted by the proposer to be used in contracts
-
-  // scheduled_msgs_hash
-  bytes implicit_hash = 18;
 }
 
 message RequestProcessProposal {
@@ -170,22 +154,6 @@ message RequestProcessProposal {
   bytes                     next_validators_hash = 7;
   // address of the public key of the original proposer of the block.
   bytes proposer_address = 8;
-  // scheduled_msgs_hash
-  tendermint.version.Consensus version  = 9 [(gogoproto.nullable) = false];
-  tendermint.types.BlockID last_block_id = 10 [(gogoproto.nullable) = false];
-  bytes data_hash        = 11;
-  bytes last_commit_hash = 12;  // commit from validators from the last block
-  bytes validators_hash      = 13;   // validators for the current block
-  bytes consensus_hash       = 14;  // consensus params for current block
-  bytes last_results_hash    = 15;  // root hash of all results from the txs from the previous block
-
-  // consensus info
-  bytes evidence_hash    = 16;  // evidence included in the block
-  // encrypted random
-  tendermint.types.EncryptedRandom encrypted_random = 17; // a random number encrypted by the proposer to be used in contracts
-
-  // scheduled_msgs_hash
-  bytes implicit_hash = 18;
 }
 
 // Extends a vote with application-injected data
@@ -202,22 +170,6 @@ message RequestExtendVote {
   bytes                     next_validators_hash = 7;
   // address of the public key of the original proposer of the block.
   bytes proposer_address = 8;
-  // scheduled_msgs_hash
-  tendermint.version.Consensus version  = 9 [(gogoproto.nullable) = false];
-  tendermint.types.BlockID last_block_id = 10 [(gogoproto.nullable) = false];
-  bytes data_hash        = 11;
-  bytes last_commit_hash = 12;  // commit from validators from the last block
-  bytes validators_hash      = 13;   // validators for the current block
-  bytes consensus_hash       = 14;  // consensus params for current block
-  bytes last_results_hash    = 15;  // root hash of all results from the txs from the previous block
-
-  // consensus info
-  bytes evidence_hash    = 16;  // evidence included in the block
-  // encrypted random
-  tendermint.types.EncryptedRandom encrypted_random = 17; // a random number encrypted by the proposer to be used in contracts
-
-  // scheduled_msgs_hash
-  bytes implicit_hash = 18;
 }
 
 // Verify the vote extension
@@ -245,16 +197,12 @@ message RequestFinalizeBlock {
   tendermint.types.Commit commit = 10;
   tendermint.version.Consensus version  = 11 [(gogoproto.nullable) = false];
   tendermint.types.BlockID last_block_id = 12 [(gogoproto.nullable) = false];
-  bytes data_hash = 13;  // commit from validators from the last block
+  bytes data_hash        = 13;
   bytes last_commit_hash = 14;  // commit from validators from the last block
   bytes validators_hash      = 15;   // validators for the current block
   bytes consensus_hash       = 16;  // consensus params for current block
   bytes last_results_hash    = 17;  // root hash of all results from the txs from the previous block
-
-  // consensus info
   bytes evidence_hash    = 18;  // evidence included in the block
-  // scheduled_msgs_hash
-  bytes implicit_hash = 19;
 }
 
 //----------------------------------------

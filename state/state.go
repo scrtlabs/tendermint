@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 
 	cmtstate "github.com/cometbft/cometbft/proto/tendermint/state"
+	tm_type "github.com/cometbft/cometbft/proto/tendermint/types"
 	cmtversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	"github.com/cometbft/cometbft/types"
 	cmttime "github.com/cometbft/cometbft/types/time"
@@ -242,6 +243,33 @@ func (state State) MakeBlock(
 ) *types.Block {
 
 	// Build base block with block data.
+	// ScrtLabs changes in ->
+	marshalledTxs, err := tmenclave.GetScheduledTxs()
+
+	// 1. Check Fetch Error
+	if err != nil {
+		println("Failed to get scheduled txs:", err.Error())
+	} else {
+		implicitTxs := &tm_type.Data{}
+		err = implicitTxs.Unmarshal(marshalledTxs)
+
+		// 2. Check Unmarshal Error
+		if err != nil {
+			println("Failed to unmarshal scheduled txs:", err.Error())
+		} else if len(implicitTxs.Txs) > 0 {
+
+			// Capacity = new + old (so the append doesn't reallocate)
+			scheduledTxs := make([]types.Tx, len(implicitTxs.Txs), len(implicitTxs.Txs)+len(txs))
+
+			for i, tx := range implicitTxs.Txs {
+				scheduledTxs[i] = types.Tx(tx)
+			}
+
+			// Append original txs
+			txs = append(scheduledTxs, txs...)
+		}
+	}
+	// ScrtLabs changes out <-
 	block := types.MakeBlock(height, txs, lastCommit, evidence)
 
 	// Set time.
@@ -279,11 +307,6 @@ func (state State) MakeBlock(
 		// println("Invalid random generated")
 		panic("Failed to validate generated random")
 	}
-
-	// implicitHash, err := tmenclave.GetImplicitHash()
-	// if err != nil {
-	// 	panic("Failed to get implicit hash")
-	// }
 	// ScrtLabs changes out <-
 
 	// Fill rest of header with state data.
@@ -292,7 +315,7 @@ func (state State) MakeBlock(
 		timestamp, state.LastBlockID,
 		state.Validators.Hash(), state.NextValidators.Hash(),
 		state.ConsensusParams.Hash(), state.AppHash, state.LastResultsHash,
-		proposerAddress, &encryptedRandom, nil,
+		proposerAddress, &encryptedRandom,
 	)
 
 	return block

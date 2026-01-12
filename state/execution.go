@@ -139,16 +139,6 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 			Time:               block.Time,
 			NextValidatorsHash: block.NextValidatorsHash,
 			ProposerAddress:    block.ProposerAddress,
-			ImplicitHash:       block.ImplicitHash,
-			Version:            block.Version,
-			DataHash:           block.DataHash,
-			LastBlockId:        block.LastBlockID.ToProto(),
-			LastCommitHash:     block.LastCommitHash,
-			ValidatorsHash:     block.ValidatorsHash,
-			ConsensusHash:      block.ConsensusHash,
-			LastResultsHash:    block.LastResultsHash,
-			EvidenceHash:       block.EvidenceHash,
-			EncryptedRandom:    block.EncryptedRandom.ToProto(),
 		},
 	)
 	if err != nil {
@@ -168,6 +158,10 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 		return nil, err
 	}
 
+	// ScrtLabs changes ->
+	tmenclave.SetScheduledTxs([]byte{}) // clear scheduled txs before setting new ones
+	// ScrtLabs changes <-
+
 	return state.MakeBlock(height, txl, commit, evidence, proposerAddr), nil
 }
 
@@ -184,16 +178,6 @@ func (blockExec *BlockExecutor) ProcessProposal(
 		Misbehavior:        block.Evidence.Evidence.ToABCI(),
 		ProposerAddress:    block.ProposerAddress,
 		NextValidatorsHash: block.NextValidatorsHash,
-		ImplicitHash:       block.ImplicitHash,
-		Version:            block.Version,
-		DataHash:           block.DataHash,
-		LastBlockId:        block.LastBlockID.ToProto(),
-		LastCommitHash:     block.LastCommitHash,
-		ValidatorsHash:     block.ValidatorsHash,
-		ConsensusHash:      block.ConsensusHash,
-		LastResultsHash:    block.LastResultsHash,
-		EvidenceHash:       block.EvidenceHash,
-		EncryptedRandom:    block.EncryptedRandom.ToProto(),
 	})
 	if err != nil {
 		return false, err
@@ -274,10 +258,9 @@ func (blockExec *BlockExecutor) applyBlock(state State, blockID types.BlockID, b
 		Txs:                block.Txs.ToSliceOfBytes(),
 		EncryptedRandom:    block.EncryptedRandom.ToProto(),
 		Commit:             blockExec.blockStore.LoadSeenCommit(block.Height).ToProto(),
-		ImplicitHash:       block.ImplicitHash,
 		Version:            block.Version,
-		DataHash:           block.DataHash,
 		LastBlockId:        block.LastBlockID.ToProto(),
+		DataHash:           block.DataHash,
 		LastCommitHash:     block.LastCommitHash,
 		ValidatorsHash:     block.ValidatorsHash,
 		ConsensusHash:      block.ConsensusHash,
@@ -397,15 +380,6 @@ func (blockExec *BlockExecutor) ExtendVote(
 		Misbehavior:        block.Evidence.Evidence.ToABCI(),
 		NextValidatorsHash: block.NextValidatorsHash,
 		ProposerAddress:    block.ProposerAddress,
-		ImplicitHash:       block.ImplicitHash,
-		Version:            block.Version,
-		DataHash:           block.DataHash,
-		LastBlockId:        block.LastBlockID.ToProto(),
-		LastCommitHash:     block.LastCommitHash,
-		ValidatorsHash:     block.ValidatorsHash,
-		ConsensusHash:      block.ConsensusHash,
-		LastResultsHash:    block.LastResultsHash,
-		EvidenceHash:       block.EvidenceHash,
 	}
 
 	resp, err := blockExec.proxyApp.ExtendVote(ctx, &req)
@@ -808,16 +782,6 @@ func ExecCommitBlock(
 		DecidedLastCommit:  commitInfo,
 		Misbehavior:        block.Evidence.Evidence.ToABCI(),
 		Txs:                block.Txs.ToSliceOfBytes(),
-		ImplicitHash:       block.ImplicitHash,
-		Version:            block.Version,
-		DataHash:           block.DataHash,
-		LastBlockId:        block.LastBlockID.ToProto(),
-		LastCommitHash:     block.LastCommitHash,
-		ValidatorsHash:     block.ValidatorsHash,
-		ConsensusHash:      block.ConsensusHash,
-		LastResultsHash:    block.LastResultsHash,
-		EvidenceHash:       block.EvidenceHash,
-		EncryptedRandom:    block.EncryptedRandom.ToProto(),
 	})
 	if err != nil {
 		logger.Error("error in proxyAppConn.FinalizeBlock", "err", err)
