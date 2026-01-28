@@ -71,9 +71,6 @@ message Header {
 
   // encrypted random
   EncryptedRandom encrypted_random = 15; // a random number encrypted by the proposer to be used in contracts
-
-  // scheduled_msgs_hash
-  bytes implicit_hash = 16;
 }
 
 // Data contains the set of transactions included in the block

@@ -2,14 +2,12 @@ package state
 
 import (
 	"bytes"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
-
+	"encoding/hex"
+	tmenclave "github.com/scrtlabs/tm-secret-enclave"
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/types"
-	tmenclave "github.com/scrtlabs/tm-secret-enclave"
 )
 
 //-----------------------------------------------------
@@ -118,18 +116,6 @@ func validateBlock(state State, block *types.Block) error {
 		if !proofValid {
 			return fmt.Errorf("invalid proof for encrypted random. Height: %d, Random: %s, Proof: %s, DataHash: %s",
 				block.Height, hex.EncodeToString(block.EncryptedRandom.Random), hex.EncodeToString(block.EncryptedRandom.Proof), hex.EncodeToString(block.DataHash))
-		}
-	}
-
-	// expectedImplicitHash, err := tmenclave.GetImplicitHash() // hash from last block's scheduling
-	// if err != nil {
-	// 	return fmt.Errorf("failed to get implicit hash: %w", err)
-	// }
-	if len(block.Header.ImplicitHash) > 0 {
-		emptySha256 := sha256.Sum256([]byte{})
-		if !bytes.Equal(block.Header.ImplicitHash, emptySha256[:]) {
-			return fmt.Errorf("implicit_hash mismatch: expected nil or empty hash, got %s",
-				block.Header.ImplicitHash.String())
 		}
 	}
 
