@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/types"
@@ -113,11 +114,13 @@ func validateBlock(state State, block *types.Block) error {
 		)
 	}
 
-	if block.EncryptedRandom != nil {
-		proofValid := tmenclave.ValidateRandom(block.EncryptedRandom.Random, block.EncryptedRandom.Proof, block.AppHash, uint64(block.Height))
-		if !proofValid {
-			return fmt.Errorf("invalid proof for encrypted random. Height: %d, Random: %s, Proof: %s, DataHash: %s",
-				block.Height, hex.EncodeToString(block.EncryptedRandom.Random), hex.EncodeToString(block.EncryptedRandom.Proof), hex.EncodeToString(block.DataHash))
+	if !(os.Getenv("SECRET_NODE_MODE") == "replay") {
+		if block.EncryptedRandom != nil {
+			proofValid := tmenclave.ValidateRandom(block.EncryptedRandom.Random, block.EncryptedRandom.Proof, block.AppHash, uint64(block.Height))
+			if !proofValid {
+				return fmt.Errorf("invalid proof for encrypted random. Height: %d, Random: %s, Proof: %s, DataHash: %s",
+					block.Height, hex.EncodeToString(block.EncryptedRandom.Random), hex.EncodeToString(block.EncryptedRandom.Proof), hex.EncodeToString(block.DataHash))
+			}
 		}
 	}
 
