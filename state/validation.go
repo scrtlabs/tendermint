@@ -2,10 +2,13 @@ package state
 
 import (
 	"bytes"
+	"encoding/hex"
 	"errors"
 	"fmt"
-	"encoding/hex"
+	"time"
+
 	tmenclave "github.com/scrtlabs/tm-secret-enclave"
+
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/types"
 )
@@ -13,7 +16,16 @@ import (
 //-----------------------------------------------------
 // Validate block
 
-func validateBlock(state State, block *types.Block) error {
+type blockValidationOptions struct {
+	blockTimeTolerance         time.Duration
+	skipLastCommitVerification bool
+}
+
+func validateBlock(state State, block *types.Block, opts ...func(*blockValidationOptions)) error {
+	var vopts blockValidationOptions
+	for _, o := range opts {
+		o(&vopts)
+	}
 	// Validate internal consistency.
 	if err := block.ValidateBasic(); err != nil {
 		return err
@@ -88,7 +100,7 @@ func validateBlock(state State, block *types.Block) error {
 		if len(block.LastCommit.Signatures) != 0 {
 			return errors.New("initial block can't have LastCommit signatures")
 		}
-	} else {
+	} else if !vopts.skipLastCommitVerification {
 		// LastCommit.Signatures length is checked in VerifyCommit.
 		if err := state.LastValidators.VerifyCommit(
 			state.ChainID, state.LastBlockID, block.Height-1, block.LastCommit); err != nil {
@@ -120,6 +132,12 @@ func validateBlock(state State, block *types.Block) error {
 	}
 
 	// Validate block Time
+	if tol := vopts.blockTimeTolerance; tol > 0 && !block.Time.Before(time.Now().Add(tol)) {
+		return fmt.Errorf(
+			"block time %v is too far in the future (wall clock %v + tolerance %v)",
+			block.Time, time.Now(), tol,
+		)
+	}
 	switch {
 	case block.Height > state.InitialHeight:
 		if !block.Time.After(state.LastBlockTime) {
