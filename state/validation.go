@@ -123,13 +123,15 @@ func validateBlock(state State, block *types.Block, opts ...func(*blockValidatio
 		)
 	}
 
+	if block.EncryptedRandom == nil {
+		return fmt.Errorf("missing encrypted random")
+	}
+
 	if !(os.Getenv("SECRET_NODE_MODE") == "replay") {
-		if block.EncryptedRandom != nil {
-			proofValid := tmenclave.ValidateRandom(block.EncryptedRandom.Random, block.EncryptedRandom.Proof, block.AppHash, uint64(block.Height))
-			if !proofValid {
-				return fmt.Errorf("invalid proof for encrypted random. Height: %d, Random: %s, Proof: %s, DataHash: %s",
-					block.Height, hex.EncodeToString(block.EncryptedRandom.Random), hex.EncodeToString(block.EncryptedRandom.Proof), hex.EncodeToString(block.DataHash))
-			}
+		proofValid := tmenclave.ValidateRandom(block.EncryptedRandom.Random, block.EncryptedRandom.Proof, block.AppHash, uint64(block.Height))
+		if !proofValid {
+			return fmt.Errorf("invalid proof for encrypted random. Height: %d, Random: %s, Proof: %s, DataHash: %s",
+				block.Height, hex.EncodeToString(block.EncryptedRandom.Random), hex.EncodeToString(block.EncryptedRandom.Proof), hex.EncodeToString(block.DataHash))
 		}
 	}
 
