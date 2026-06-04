@@ -441,10 +441,6 @@ func (h Header) ValidateBasic() error {
 		return fmt.Errorf("wrong LastResultsHash: %v", err)
 	}
 
-	if h.EncryptedRandom == nil {
-		return fmt.Errorf("missing encrypted random")
-	}
-
 	return nil
 }
 
